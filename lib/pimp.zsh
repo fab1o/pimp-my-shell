@@ -2390,7 +2390,7 @@ glog() {
 	
 	git fetch origin --quiet
 
-	git log -15 --graph --abbrev-commit --pretty=format:'%C(magenta)%h%Creset ~%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset';
+	git --no-pager log --oneline -15 --graph --date=relative
 
 	cd "$PWD_"
 }
