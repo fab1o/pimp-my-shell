@@ -21,8 +21,9 @@ The corresponding [Oh My Posh version](https://ohmyposh.dev/docs/themes#robbyrus
 
 - **Required:** [Oh My Zsh](https://ohmyz.sh/)
 - **Highly Recommended:**
-  - [Oh My Posh](https://ohmyposh.dev/) with a [Nerd Font](https://ohmyposh.dev/docs/installation/fonts)
+  - [Oh My Posh](https://ohmyposh.dev/) with [Nerd Fonts](https://ohmyposh.dev/docs/installation/fonts)
   - [gum](https://github.com/charmbracelet/gum) for enhanced terminal UX
+  - [glow](https://github.com/charmbracelet/glow) for enhanced terminal UX
   - [GitHub CLI](https://github.com/cli/cli) — needed for features like PR creation
 - **Recommended:**
   - [iTerm2](https://iterm2.com/) or a modern terminal emulator

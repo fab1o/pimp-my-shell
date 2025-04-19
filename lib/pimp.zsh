@@ -152,7 +152,7 @@ del() {
 
 	if [[ "$FLAG_2" == "." ]]; then
 		gum spin --title " deleting... $FILE_PATH" -- rm -rf "$FILE_PATH"
-		echo "\e[95mls $(shorten_path_)\e[0m"
+		echo "\e[95meleted. ls $(shorten_path_)\e[0m"
 		ls
 	else
 		local PARENT_FOLDER=$(dirname "$1")
@@ -162,7 +162,7 @@ del() {
 		if [ $? -ne 0 ]; then return 1; fi
 
 		gum spin --title " deleting... $FILE_PATH" -- rm -rf "$FILE_PATH"
-		echo "\e[95mls $(shorten_path_ $PARENT_PATH)\e[0m"
+		echo "\e[95mdeleted. now ls $(shorten_path_ $PARENT_PATH)\e[0m"
 
 		if [[ $FLAG -eq 1 ]]; then
 			cd "$PARENT_PATH"
@@ -1840,7 +1840,8 @@ revs() {
 	fi
 
 	if [[ -z "$PROJ_FOLDER" ]]; then
-		check_prj_;
+		echo " could not located project folder, please check your config"
+		echo "  type \e[93mhelp\e[0m"
 		return 1;
 	fi
 
@@ -1945,7 +1946,8 @@ rev() {
 	fi
 
 	if [[ -z "$PROJ_REPO" || -z "$PROJ_FOLDER" ]]; then
-		check_prj_;
+		echo " could not located repository uri or project folder, please check your config"
+		echo "  type \e[93mhelp\e[0m"
 		return 1;
 	fi
 
@@ -2090,19 +2092,16 @@ clone() {
 
 	if [[ -n "$$PROJ_ARG" ]]; then
 		if [[ "$PROJ_ARG" == "$Z_PROJECT_SHORT_NAME_1" ]]; then
-			check_prj_1_; if [ $? -ne 0 ]; then return 1; fi
 			PROJ_REPO="$Z_PROJECT_REPO_1"
 			PROJ_FOLDER="$Z_PROJECT_FOLDER_1"
 			CLONE="$Z_CLONE_1"
 
 		elif [[ "$PROJ_ARG" == "$Z_PROJECT_SHORT_NAME_2" ]]; then
-			check_prj_2_; if [ $? -ne 0 ]; then return 1; fi
 			PROJ_REPO="$Z_PROJECT_REPO_2"
 			PROJ_FOLDER="$Z_PROJECT_FOLDER_2"
 			CLONE="$Z_CLONE_2"
 
 		elif [[ "$PROJ_ARG" == "$Z_PROJECT_SHORT_NAME_3" ]]; then
-			check_prj_3_; if [ $? -ne 0 ]; then return 1; fi
 			PROJ_REPO="$Z_PROJECT_REPO_3"
 			PROJ_FOLDER="$Z_PROJECT_FOLDER_3"
 			CLONE="$Z_CLONE_3"
@@ -2110,7 +2109,8 @@ clone() {
 	fi
 
 	if [[ -z "$PROJ_REPO" || -z "$PROJ_FOLDER" ]]; then
-		check_prj_;
+		echo " could not located repository uri or project folder, please check your config"
+		echo "  type \e[93mhelp\e[0m"
 		return 1;
 	fi
 
@@ -2138,27 +2138,27 @@ clone() {
 				return 0;
 			fi
 		else
-		while true; do
-			echo -n ""$'\e[38;5;141m'mode:$'\e[0m'" how do you prefer to manage repos: "$'\e[38;5;218m'single:$'\e[0m'" or "$'\e[38;5;218m'multiple:$'\e[0m'"? [s/m]: "
-			stty -echo                  # Turn off input echo
-			read -k 1 mode              # Read one character
-			stty echo                   # Turn echo back on
-			case "$mode" in
-				[sSmM]) break ;;          # Accept only s or m (case-insensitive)
-				*) echo "" ;;
-			esac
-		done
-			WORK_MODE=$mode;
-			if [[ "$WORK_MODE" == "s" || "$WORK_MODE" == "S" ]]; then
+		# no gum
+			while true; do
+				echo -n ""$'\e[38;5;141m'mode:$'\e[0m'" how do you prefer to manage repos: "$'\e[38;5;218m'single:$'\e[0m'" or "$'\e[38;5;218m'multiple:$'\e[0m'"? [s/m]: "
+				stty -echo                  # Turn off input echo
+				read -k 1 mode              # Read one character
+				stty echo                   # Turn echo back on
+				case "$mode" in
+					[sSmM]) break ;;          # Accept only s or m (case-insensitive)
+					*) echo "" ;;
+				esac
+			done
+			if [[ "$mode" == "s" || "$mode" == "S" ]]; then
 				WORK_MODE="s"
-			else
+			elif [[ "$mode" == "m" || "$mode" == "M" ]]; then
 				WORK_MODE="m"
+			else
+				return 0;
 			fi
-			return;
 		fi
 
 		if [[ "$WORK_MODE" == "s" ]]; then
-
 			if command -v gum &> /dev/null; then
 				gum spin --title "cloning... $(shorten_path_ "$PROJ_FOLDER")" -- git clone $PROJ_REPO "$PROJ_FOLDER" --quiet
 				if [ $? -ne 0 ]; then return 1; fi
@@ -2171,6 +2171,17 @@ clone() {
 
 			echo "$PROJECT_COR $CLONE\e[0m"
 			eval $CLONE
+
+			if command -v glow &> /dev/null; then
+				# find readme file
+				local README_FILE=$(find . -type f \( -iname "README*" -o -iname "readme*" \) | head -n 1);
+				if [[ -n "$README_FILE" ]]; then
+					glow "$README_FILE"
+				else
+					echo " no readme file found"
+				fi
+			fi
+
 			return 0;
 		fi
 
@@ -2242,6 +2253,17 @@ clone() {
 	echo "$PROJECT_COR $CLONE\e[0m"
 	eval $CLONE
 
+	if command -v glow &> /dev/null; then
+		# find readme file
+		local README_FILE=$(find . -type f \( -iname "README*" -o -iname "readme*" \) | head -n 1);
+		if [[ -n "$README_FILE" ]]; then
+			glow "$README_FILE"
+		else
+			echo " no readme file found"
+		fi
+	fi
+
+	# if everything is successfull, do not go back to the original folder
 	# if [[ -n "$2" ]]; then
 	# 	cd "$PWD_"
 	# fi
@@ -2323,9 +2345,16 @@ commit() {
 			return 0;
 		fi
 
+		local CURRENT_BRANCH=$(git branch --show-current)
+		local TICKET=""
+
+		if [[ $CURRENT_BRANCH =~ ([[:alnum:]]+-[[:digit:]]+) ]]; then
+			TICKET="${match[1]}"
+		fi
+
 		# Commit these changes if user confirms
 		git add .
-		git commit --no-verify --message "$SUMMARY";
+		git commit --no-verify --message "$TICKET $SUMMARY";
 	else
 		git add .
 		git commit --no-verify --message "$1"
