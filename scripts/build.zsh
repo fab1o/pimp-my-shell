@@ -6,7 +6,10 @@ set -e
 # Detect platform
 OS="$(uname)"
 
-echo "🚧 Cleaning previous build..."
+if [[ -d "dist" ]]; then
+  echo "🚧 Cleaning previous build..."
+fi
+
 rm -rf dist
 
 echo "📁 Creating dist directories..."
@@ -21,7 +24,7 @@ sleep 0.5
 
 # 🔧 Update config path in script
 TARGET_FILE="./dist/pimp.zsh"
-echo "🛠️  Rewriting config path in $TARGET_FILE..."
+echo "🛠️ Rewriting config path in $TARGET_FILE..."
 
 if [[ -f "$TARGET_FILE" ]]; then
   if [[ "$OS" == "Darwin" ]]; then
