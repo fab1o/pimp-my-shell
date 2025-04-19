@@ -336,13 +336,13 @@ help() {
 
 	help_line() {
 		local word=$1
+		local color=${2:-"250"}
 
 		if ! command -v gum &> /dev/null; then
 			echo "$TITLE_COR -- $word ----------------------------------------------------- \e[0m"
 			return 0;
 		fi
 
-		local color=${2:-"250"}
 		# Calculate how much space is needed on each side
 		local word_length=${#word}
 		local padding=$(( (total_width - word_length - 2) / 2 ))  # -2 for spaces around word
@@ -392,18 +392,18 @@ help() {
 	fi
 	
 	echo ""
-	help_line "get started"
+	help_line "get started" 212
 
 	echo ""
-	echo "  1. clone project, type$PROJECT_COR_2 clone -h\e[0m for help"
-	echo "  2. setup project, type$PROJECT_COR_2 setup -h\e[0m for help"
-	echo "  3. run a project, type$PROJECT_COR_2 run -h\e[0m for help"
-	echo ""
-	help_line "code reviews"
+	echo "  1.\e[38;5;218m clone\e[0m project, type$PROJECT_COR_2 clone -h\e[0m for help"
+	echo "  2.\e[38;5;218m setup\e[0m project, type$PROJECT_COR_2 setup -h\e[0m for help"
+	echo "  3.\e[38;5;218m run\e[0m a project, type$PROJECT_COR_2 run -h\e[0m for help"
+	# echo ""
+	# help_line "code reviews"
 
-	echo ""
-	echo "  1. open a review, type$PROJECT_COR_2 rev -h\e[0m for help"
-	echo "  2. list reviews, type$PROJECT_COR_2 revs -h\e[0m for help"
+	# echo ""
+	# echo "  1. open a review, type$PROJECT_COR_2 rev -h\e[0m for help"
+	# echo "  2. list reviews, type$PROJECT_COR_2 revs -h\e[0m for help"
 	echo ""
 	help_line "project selection"
 	echo " $PROJECT_COR_2 pro \e[0m\t\t = set project"
@@ -2122,12 +2122,63 @@ clone() {
 
 	local PWD_="$(PWD)";
 
-	cd "$PROJ_FOLDER"
-
 	if [[ -z "$BRANCH_ARG" ]]; then
+
+		local WORK_MODE=""
+
+		# ask user if they want to single project mode, or multiple mode
+		if command -v gum &> /dev/null; then
+			gum confirm ""mode:$'\e[0m'" how do you prefer to manage repos: single or multiple?"  --no-show-help --affirmative="single" --negative="multiple"
+			local STATUS=$?
+			if [[ $STATUS -eq 0 ]]; then
+				WORK_MODE="s"
+			elif [[ $STATUS -eq 1 ]]; then
+				WORK_MODE="m"
+			else
+				return 0;
+			fi
+		else
+		while true; do
+			echo -n ""$'\e[38;5;141m'mode:$'\e[0m'" how do you prefer to manage repos: "$'\e[38;5;218m'single:$'\e[0m'" or "$'\e[38;5;218m'multiple:$'\e[0m'"? [s/m]: "
+			stty -echo                  # Turn off input echo
+			read -k 1 mode              # Read one character
+			stty echo                   # Turn echo back on
+			case "$mode" in
+				[sSmM]) break ;;          # Accept only s or m (case-insensitive)
+				*) echo "" ;;
+			esac
+		done
+			WORK_MODE=$mode;
+			if [[ "$WORK_MODE" == "s" || "$WORK_MODE" == "S" ]]; then
+				WORK_MODE="s"
+			else
+				WORK_MODE="m"
+			fi
+			return;
+		fi
+
+		if [[ "$WORK_MODE" == "s" ]]; then
+
+			if command -v gum &> /dev/null; then
+				gum spin --title "cloning... $(shorten_path_ "$PROJ_FOLDER")" -- git clone $PROJ_REPO "$PROJ_FOLDER" --quiet
+				if [ $? -ne 0 ]; then return 1; fi
+			else
+				git clone $PROJ_REPO "$PROJ_FOLDER"
+				if [ $? -ne 0 ]; then return 1; fi
+			fi
+
+			cd "$PROJ_FOLDER"
+
+			echo "$PROJECT_COR $CLONE\e[0m"
+			eval $CLONE
+			return 0;
+		fi
+
+		# multiple clone mode
+	
 		if command -v gum &> /dev/null; then
 			gum spin --title "cleaning..." -- rm -rf "$PROJ_FOLDER/.temp"
-			gum spin --title "cloning... $PROJ_REPO" -- git clone $PROJ_REPO "$PROJ_FOLDER/.temp" --quiet
+			gum spin --title "cloning... $(shorten_path_ "$PROJ_REPO")" -- git clone $PROJ_REPO "$PROJ_FOLDER/.temp" --quiet
 		else
 			echo " cloning... $PROJ_REPO";
 			rm -rf "$PROJ_FOLDER/.temp"
@@ -2149,8 +2200,10 @@ clone() {
 			BRANCH_ARG="$DEFAULT_BRANCH_1";
 		fi
 
-		cd "$PROJ_FOLDER" # go back up
+		cd "$PROJ_FOLDER" # go back one level
 		rm -rf "$PROJ_FOLDER/.temp"
+
+		# end of with BRANCH_ARG
 	fi
 
 	if [[ -z "$BRANCH_ARG" ]]; then
@@ -2161,8 +2214,13 @@ clone() {
 	BRANCH_ARG="${BRANCH_ARG//\\/-}"
 	BRANCH_ARG="${BRANCH_ARG//\//-}"
 
-  git clone $PROJ_REPO "$PROJ_FOLDER/$BRANCH_ARG"
-	if [ $? -ne 0 ]; then return 1; fi
+	if command -v gum &> /dev/null; then
+		gum spin --title "cloning... $(shorten_path_ "$PROJ_FOLDER/$BRANCH_ARG")" -- git clone $PROJ_REPO "$PROJ_FOLDER/$BRANCH_ARG" --quiet
+		if [ $? -ne 0 ]; then return 1; fi
+	else
+  	git clone $PROJ_REPO "$PROJ_FOLDER/$BRANCH_ARG"
+		if [ $? -ne 0 ]; then return 1; fi
+	fi
 
 	cd "$PROJ_FOLDER/$BRANCH_ARG"
 	
