@@ -82,4 +82,23 @@ else
   cp -R "$SRC_CONFIG" "$DEST_CONFIG"
 fi
 
+# 3. Append Oh My Posh config to .zshrc (if not already present)
+ZSHRC="$HOME/.zshrc"
+CONFIG_SNIPPET=$(cat << 'EOF'
+
+# pimp-my-shell config
+source "$HOME/.pimp/pimp.zsh"
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+  eval "$(oh-my-posh init zsh --config $HOME/.pimp/pimp.omp.json)"
+fi
+EOF
+)
+
+if ! grep -q '.pimp/pimp.zsh' "$ZSHRC"; then
+  echo "$CONFIG_SNIPPET" >> "$ZSHRC"
+  echo "✅ Configuration added to $ZSHRC"
+else
+  echo "ℹ️ Configuration already exists in $ZSHRC"
+fi
+
 echo "✅ Deployment complete."
