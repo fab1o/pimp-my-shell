@@ -1,0 +1,23 @@
+{
+  "author": "Fabio Costa <6663243+fab1o@users.noreply.github.com>",
+  "bugs": {
+    "url": "https://github.com/fab1o/pimp-my-shell/issues"
+  },
+  "description": "A custom Oh My Posh theme, loosely inspired by robbyrussell's, with a fully configurable set of aliases and functions to supercharge your Zsh experience.",
+  "homepage": "https://github.com/fab1o/pimp-my-shell#readme",
+  "license": "GPL-3.0",
+  "main": "test.js",
+  "name": "pimp-my-shell",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fab1o/pimp-my-shell.git"
+  },
+  "scripts": {
+    "build": "./scripts/build.zsh",
+    "deploy": "npm run build && ./scripts/deploy.zsh",
+    "setup": "chmod +x ./scripts/deploy.zsh && chmod +x ./scripts/build.zsh",
+    "start": "echo 'Starting up Pimp My Shell...!!'",
+    "test": "shellspec"
+  },
+  "version": "1.0.0"
+}
